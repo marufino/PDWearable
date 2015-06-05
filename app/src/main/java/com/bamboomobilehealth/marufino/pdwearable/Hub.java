@@ -156,6 +156,7 @@ public class Hub extends ActionBarActivity
 
 
         tv = (TextView) findViewById(R.id.textView);
+        tv.setMovementMethod(new ScrollingMovementMethod());
 
         if (!getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -473,14 +474,14 @@ public class Hub extends ActionBarActivity
             // find the amount we need to scroll. This works by
             // asking the TextView's internal layout for the position
             // of the final line and then subtracting the TextView's height
-            /*final int scrollAmount = tv.getLayout().getLineTop(
+            final int scrollAmount = tv.getLayout().getLineTop(
                     tv.getLineCount())
                     - tv.getHeight();
             // if there is no need to scroll, scrollAmount will be <=0
             if (scrollAmount > 0)
                 tv.scrollTo(0, scrollAmount);
             else
-                tv.scrollTo(0, 0);*/
+                tv.scrollTo(0, 0);
 
 
         }
