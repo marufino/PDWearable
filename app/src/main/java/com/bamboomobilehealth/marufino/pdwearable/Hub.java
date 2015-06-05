@@ -37,8 +37,16 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.NumberPicker;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import org.w3c.dom.Text;
@@ -95,8 +103,8 @@ public class Hub extends ActionBarActivity
 
     public static Hub instance = null;
 
-    private ImageView connectedIcon;
-    private TextView connectedText;
+    private static ImageView connectedIcon;
+    private static TextView connectedText;
 
 
     private boolean isConnected = false;
@@ -188,25 +196,19 @@ public class Hub extends ActionBarActivity
 
         instance = this;
 
-        tv = (TextView) findViewById(R.id.textView);
-        tv.setMovementMethod(new ScrollingMovementMethod());
-
-        connectedText = (TextView) findViewById(R.id.connectedText);
-        connectedIcon = (ImageView) findViewById(R.id.connectedIcon);
-
         Intent intent = getIntent();
 
         mDeviceAddress = intent.getStringExtra(Device.EXTRA_DEVICE_ADDRESS);
         mDeviceName = intent.getStringExtra(Device.EXTRA_DEVICE_NAME);
 
-        if(mDeviceAddress!=null)
-        {
-            connectedText.setText("Connected");
-            connectedIcon.setImageResource(android.R.drawable.button_onoff_indicator_on);
-        }
-
         Intent gattServiceIntent = new Intent(this, RBLService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+
+        // load main fragment
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, PlaceholderFragment.newInstance(0))
+                .commit();
     }
 
 
@@ -220,10 +222,26 @@ public class Hub extends ActionBarActivity
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
-        /*FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
-                .commit();*/
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
+        switch (position) {
+            case 0:
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container, PlaceholderFragment.newInstance(position))
+                        .commit();
+                break;
+            case 1:
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container, ButtonsFragment.newInstance(position))
+                        .commit();
+                break;
+            case 2:
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container, AlarmFragment.newInstance(position))
+                        .commit();
+                break;
+
+        }
     }
 
     public void onSectionAttached(int number) {
@@ -628,6 +646,593 @@ public class Hub extends ActionBarActivity
         intentFilter.addAction(RBLService.ACTION_DATA_AVAILABLE);
 
         return intentFilter;
+    }
+
+    /**
+    * A placeholder fragment containing a simple view.
+    */
+    public static class PlaceholderFragment extends Fragment {
+    /**
+    * The fragment argument representing the section number for this
+    * fragment.
+    */
+        private static final String ARG_SECTION_NUMBER = "section_number";
+
+        /**
+        * Returns a new instance of this fragment for the given section
+        * number.
+        */
+        public static PlaceholderFragment newInstance(int sectionNumber) {
+            PlaceholderFragment fragment = new PlaceholderFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        public PlaceholderFragment() {
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                                   Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_hub, container, false);
+
+            tv = (TextView) rootView.findViewById(R.id.textView);
+            tv.setMovementMethod(new ScrollingMovementMethod());
+
+            connectedText = (TextView) rootView.findViewById(R.id.connectedText);
+            connectedIcon = (ImageView) rootView.findViewById(R.id.connectedIcon);
+
+            if(mDeviceAddress!=null)
+            {
+
+                connectedText.setText("Connected");
+                connectedIcon.setImageResource(android.R.drawable.button_onoff_indicator_on);
+            }
+
+            return rootView;
+        }
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            ((Hub) activity).onSectionAttached(
+                    getArguments().getInt(ARG_SECTION_NUMBER));
+        }
+    }
+
+
+    /**
+     * A placeholder fragment containing a simple view.
+     */
+    public static class ButtonsFragment extends Fragment {
+        /**
+         * The fragment argument representing the section number for this
+         * fragment.
+         */
+        private static final String ARG_SECTION_NUMBER = "section_number";
+
+        /**
+         * Returns a new instance of this fragment for the given section
+         * number.
+         */
+        public static ButtonsFragment newInstance(int sectionNumber) {
+            ButtonsFragment fragment = new ButtonsFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        public ButtonsFragment() {
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_buttons, container, false);
+
+            //Initialize Symptom Spinner
+            final Spinner symptoms = (Spinner)rootView.findViewById(R.id.greenspinner);
+            String[] symptomItems = new String[]{"Bradykinesia", "Freezing", "Tremor", "Balance-Walking"};
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, symptomItems);
+            symptoms.setAdapter(adapter);
+
+            return rootView;
+        }
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            ((Hub) activity).onSectionAttached(
+                    getArguments().getInt(ARG_SECTION_NUMBER));
+        }
+    }
+
+    /**
+     * A placeholder fragment containing a simple view.
+     */
+    public static class AlarmFragment extends Fragment {
+        /**
+         * The fragment argument representing the section number for this
+         * fragment.
+         */
+        public static final String EXTRAS_DEVICE = "EXTRAS_DEVICE";
+        private TextView tv = null;
+        private EditText et = null;
+        private Button btn = null;
+        private Button settingsbtn = null;
+        private TimePicker med1;
+        private TimePicker med2;
+        private TimePicker med3;
+        private TimePicker med4;
+        private TimePicker med5;
+        private Switch medswitch1;
+        private Switch medswitch2;
+        private String alarm1;
+        private String alarm2;
+        private String alarm3;
+        private String alarm4;
+        private String alarm5;
+        private String mDeviceName;
+        private RadioGroup yellowGroup;
+        private RadioGroup blueGroup;
+        private String[] yellowItems;
+        private String[] blueItems;
+        public static String stop = "Symptom Stop";
+        public static String start = "Symptom Start";
+        public static String blue = "Medication";
+        public static String yellow = "Event";
+        public static final String MY_PREFS_NAME = "PDSettings";
+
+        private static final String ARG_SECTION_NUMBER = "section_number";
+
+        /**
+         * Returns a new instance of this fragment for the given section
+         * number.
+         */
+        public static AlarmFragment newInstance(int sectionNumber) {
+            AlarmFragment fragment = new AlarmFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            fragment.setArguments(args);
+
+            return fragment;
+        }
+
+        public void savePrefs(String green, String red, String yellow, String blue, int num,
+                              int hour1, int minute1, int hour2, int minute2, boolean switch1,
+                              boolean switch2, String deviceName, String id, int hour3, int minute3, int hour4, int minute4, int hour5, int minute5,
+                              boolean switch3, boolean switch4, boolean switch5) {
+            SharedPreferences prefs = this.getActivity().getSharedPreferences("button_settings", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("redpref", red);
+            editor.putString("greenpref", green);
+            editor.putString("yellowpref", yellow);
+            editor.putString("bluepref", blue);
+            editor.putInt("numberpicker", num);
+            editor.putInt("hour1", hour1);
+            editor.putInt("minute1", minute1);
+            editor.putInt("hour2", hour2);
+            editor.putInt("minute2", minute2);
+            editor.putInt("hour3", hour3);
+            editor.putInt("minute3", minute3);
+            editor.putInt("hour4", hour4);
+            editor.putInt("minute4", minute4);
+            editor.putInt("hour5", hour5);
+            editor.putInt("minute5", minute5);
+            editor.putBoolean("switch1", switch1);
+            editor.putBoolean("switch2", switch2);
+            editor.putBoolean("switch3", switch3);
+            editor.putBoolean("switch4", switch4);
+            editor.putBoolean("switch5", switch5);
+            editor.putString("deviceName", deviceName);
+            editor.putString("projectID", id);
+            editor.commit();
+
+            //Let user know that settings were saved
+            Toast.makeText(getActivity(), "Settings Saved", Toast.LENGTH_SHORT).show();
+
+        }
+
+
+        public AlarmFragment() {
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_alarm, container, false);
+
+            //Read files from preference file
+            SharedPreferences prefs = this.getActivity().getSharedPreferences("button_settings",
+                    MODE_PRIVATE);
+
+            //Initialize Edit Texts
+            final EditText deviceName = (EditText) rootView.findViewById(R.id.editText);
+            deviceName.setText(prefs.getString("deviceName", "Enter Device Name Here"));
+
+            final EditText projectID = (EditText) rootView.findViewById(R.id.editText2);
+            projectID.setText(prefs.getString("projectID", "Enter Project ID Here"));
+
+            //Initialize Symptom Spinner
+            final Spinner symptoms = (Spinner)rootView.findViewById(R.id.startDropdown);
+            String[] symptomItems = new String[]{"Bradykinesia", "Freezing", "Tremor", "Balance-Walking"};
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, symptomItems);
+            symptoms.setAdapter(adapter);
+
+            //Initialize Yellow Spinner
+            yellowGroup = (RadioGroup) rootView.findViewById(R.id.yellowGroup);
+            final Spinner yellowDrop = (Spinner)rootView.findViewById(R.id.yellowDropdown);
+            yellowGroup.clearCheck();
+
+            yellowGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+
+                public void onCheckedChanged(RadioGroup group, int checkedId) {
+                    if (checkedId == R.id.rYellowMeds) {
+                        yellowItems = new String[]{"Azilect (Rasagline) 1.0 mg", "Azilect (Rasagline) 0.5 mg", "Eldepryl (Selegiline) 5 mg",
+                                "Mirapex (Pramipexole) 1.0 mg", "Mirapex (Pramipexole) 1.5 mg", "Neupro (Rotigotine) 2.0 mg", "Requip (Ropinirole) 1.0 mg",
+                                "Requip (Ropinirole) 2.0 mg", "Sinemet 12.5 mg/50 mg", "Symmetrel (Amantadine) 100 mg", "Sinemet 25 mg/100 mg"};
+                    }
+                    else if (checkedId == R.id.rYellowEvent) {
+                        yellowItems = new String[]{"Dyskinesia", "Fatigue", "Depression", "Impulsive Behavior", "Memory Difficult"};
+                    }
+                    ArrayAdapter<String> adapter2 = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, yellowItems);
+                    yellowDrop.setAdapter(adapter2);
+                }
+            });
+
+            final RadioButton yellowMeds = (RadioButton) rootView.findViewById(R.id.rYellowMeds);
+            yellowMeds.setChecked(true);
+            final RadioButton yellowEvent = (RadioButton) rootView.findViewById(R.id.rYellowEvent);
+            yellowMeds.setChecked(true);
+
+            //Initialize Blue Spinner
+            blueGroup = (RadioGroup) rootView.findViewById(R.id.blueGroup);
+            final Spinner blueDrop = (Spinner)rootView.findViewById(R.id.blueDropdown);
+            blueGroup.clearCheck();
+
+            blueGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+
+                public void onCheckedChanged(RadioGroup group, int checkedId) {
+                    if (checkedId == R.id.rBlueMeds) {
+                        blueItems = new String[]{"Azilect (Rasagline) 1.0 mg", "Azilect (Rasagline) 0.5 mg", "Eldepryl(Selegiline) 5 mg",
+                                "Mirapex (Pramipexole) 1.0 mg", "Mirapex (Pramipexole) 1.5 mg", "Neupro (Rotigotine) 2.0 mg", "Requip (Ropinirole) 1.0 mg",
+                                "Requip (Ropinirole) 2.0 mg", "Sinemet 12.5 mg/50 mg", "Symmetrel (Amantadine) 100 mg", "Sinemet 25 mg/100 mg"};
+                    }
+                    else if (checkedId == R.id.rBlueEvent) {
+                        blueItems = new String[]{"Dyskinesia", "Fatigue", "Depression", "Impulsive Behavior", "Memory Difficulty"};
+                    }
+                    ArrayAdapter<String> adapter3 = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, blueItems);
+                    blueDrop.setAdapter(adapter3);
+                }
+            });
+
+            final RadioButton blueMeds = (RadioButton) rootView.findViewById(R.id.rBlueMeds);
+            blueMeds.setChecked(true);
+            final RadioButton blueEvent = (RadioButton) rootView.findViewById(R.id.rBlueEvent);
+            blueEvent.setChecked(true);
+
+            //Initialize Number Picker
+            String[] values = new String[10];
+            for (int i=0;i<values.length;i++){
+                values[i]=Integer.toString((i+1)*5);
+            }
+
+            final NumberPicker np = (NumberPicker) rootView.findViewById(R.id.numberPicker2);
+            np.setMaxValue(values.length-1);
+            np.setMinValue(1);
+            np.setDisplayedValues(values);
+            np.setWrapSelectorWheel(false);
+            np.setValue(prefs.getInt("numberpicker", 5));   //Restore previous setting value
+
+
+
+            //Initialize Time Pickers
+            final Switch switch1 = (Switch) rootView.findViewById(R.id.medSwitch1);
+            final Switch switch2 = (Switch) rootView.findViewById(R.id.medSwitch2);
+            final Switch switch3 = (Switch) rootView.findViewById(R.id.medSwitch3);
+            final Switch switch4 = (Switch) rootView.findViewById(R.id.medSwitch4);
+            final Switch switch5 = (Switch) rootView.findViewById(R.id.medSwitch5);
+
+            switch1.setChecked(prefs.getBoolean("switch1", true));
+            switch2.setChecked(prefs.getBoolean("switch2", true ));
+            switch3.setChecked(prefs.getBoolean("switch3", true));
+            switch4.setChecked(prefs.getBoolean("switch4", true ));
+            switch5.setChecked(prefs.getBoolean("switch5", true));
+
+            med1 = (TimePicker) rootView.findViewById(R.id.medTime1);
+            med1.setCurrentHour(prefs.getInt("hour1", 0));
+            med1.setCurrentMinute(prefs.getInt("minute1", 0));
+            if (switch1.isChecked()) {
+                med1.setVisibility(View.VISIBLE);
+            }
+
+            med2 = (TimePicker) rootView.findViewById(R.id.medTime2);
+            med2.setCurrentHour(prefs.getInt("hour2", 0));
+            med2.setCurrentMinute(prefs.getInt("minute2", 0));
+            if (switch2.isChecked()) {
+                med2.setVisibility(View.VISIBLE);
+            }
+
+            med3 = (TimePicker) rootView.findViewById(R.id.medTime3);
+            med3.setCurrentHour(prefs.getInt("hour3", 0));
+            med3.setCurrentMinute(prefs.getInt("minute3", 0));
+            if (switch3.isChecked()) {
+                med3.setVisibility(View.VISIBLE);
+            }
+
+            med4 = (TimePicker) rootView.findViewById(R.id.medTime4);
+            med4.setCurrentHour(prefs.getInt("hour4", 0));
+            med4.setCurrentMinute(prefs.getInt("minute4", 0));
+            if (switch4.isChecked()) {
+                med4.setVisibility(View.VISIBLE);
+            }
+
+            med5 = (TimePicker) rootView.findViewById(R.id.medTime5);
+            med5.setCurrentHour(prefs.getInt("hour5", 0));
+            med5.setCurrentMinute(prefs.getInt("minute5", 0));
+            if (switch5.isChecked()) {
+                med5.setVisibility(View.VISIBLE);
+            }
+
+
+            switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        med1.setVisibility(View.VISIBLE);
+                    } else {
+                        med1.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
+
+            switch2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        med2.setVisibility(View.VISIBLE);
+                    } else {
+                        med2.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
+
+            switch3.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        med3.setVisibility(View.VISIBLE);
+                    } else {
+                        med3.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
+
+            switch4.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        med4.setVisibility(View.VISIBLE);
+                    } else {
+                        med4.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
+
+            switch5.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        med5.setVisibility(View.VISIBLE);
+                    } else {
+                        med5.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
+
+
+            //All number pickers and drop boxes are initialized
+            //Now it's time to send data to the BLE when the Save button is pressed
+
+            //When save button pressed, send data to RBL
+            btn = (Button) rootView.findViewById(R.id.btn_save);
+            btn.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    BluetoothGattCharacteristic characteristic = Hub.map.get(RBLService.UUID_BLE_SHIELD_TX);
+
+                    //Interval Setting
+                    final String interval = "i" + Integer.toString(np.getValue());
+
+                    //Alarm 1
+                    String hour1 = Integer.toString(med1.getCurrentHour());
+                    String minute1 = Integer.toString(med1.getCurrentMinute());
+
+                    if (med1.getCurrentMinute() < 10) {
+                        minute1 = "0" + minute1;
+                    }
+
+                    if (switch1.isChecked()) {
+                        alarm1 = "a" + hour1 + ":" + minute1;
+                    }
+                    else {
+                        alarm1 = "aXX:XX";
+                    }
+
+                    //Alarm 2
+                    String hour2 = Integer.toString(med2.getCurrentHour());
+                    String minute2 = Integer.toString(med2.getCurrentMinute());
+
+                    if (med2.getCurrentMinute() < 10) {
+                        minute2 = "0" + minute2;
+                    }
+
+                    if (switch2.isChecked()) {
+                        alarm2 = "b" + hour2 + ":" + minute2;
+                    }
+                    else {
+                        alarm2 = "bXX:XX";
+                    }
+
+                    //Alarm 3
+                    final String hour3 = Integer.toString(med3.getCurrentHour());
+                    String minute3 = Integer.toString(med3.getCurrentMinute());
+
+                    if (med3.getCurrentMinute() < 10) {
+                        minute3 = "0" + minute3;
+                    }
+
+                    if (switch3.isChecked()) {
+                        alarm3 = "b" + hour3 + ":" + minute3;
+                    }
+                    else {
+                        alarm3 = "xXX:XX";
+                    }
+
+                    //Alarm 4
+                    final String hour4 = Integer.toString(med4.getCurrentHour());
+                    String minute4 = Integer.toString(med4.getCurrentMinute());
+
+                    if (med4.getCurrentMinute() < 10) {
+                        minute4 = "0" + minute4;
+                    }
+
+                    if (switch4.isChecked()) {
+                        alarm4 = "b" + hour4 + ":" + minute4;
+                    }
+                    else {
+                        alarm4 = "yXX:XX";
+                    }
+
+                    //Alarm 5
+                    final String hour5 = Integer.toString(med5.getCurrentHour());
+                    String minute5 = Integer.toString(med5.getCurrentMinute());
+
+                    if (med5.getCurrentMinute() < 10) {
+                        minute5 = "0" + minute5;
+                    }
+
+                    if (switch5.isChecked()) {
+                        alarm5 = "b" + hour5 + ":" + minute5;
+                    }
+                    else {
+                        alarm5 = "zXX:XX";
+                    }
+
+/*
+                    //Send Interval setting
+                    try {
+                        characteristic.setValue(interval);
+                        mBluetoothLeService.writeCharacteristic(characteristic);
+                    } catch (Exception e) {
+                        Toast.makeText(getActivity(), "No Bluetooth", Toast.LENGTH_SHORT).show();
+                    }
+
+                    try {
+                        Thread.sleep(500);                 //Wait 1/2 second
+                    } catch(InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+
+                    //Send alarm 1 only if checked
+                    try {
+                        characteristic.setValue(alarm1);
+                        mBluetoothLeService.writeCharacteristic(characteristic);
+                    } catch (Exception e) {
+                        Toast.makeText(getActivity(), "No Bluetooth", Toast.LENGTH_SHORT).show();
+                    }
+
+
+                    try {
+                        Thread.sleep(500);                 //Wait 1/2 second
+                    } catch(InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+
+                    //Send alarm 2 only if checked
+                    try {
+                        characteristic.setValue(alarm2);
+                        mBluetoothLeService.writeCharacteristic(characteristic);
+                    } catch (Exception e) {
+                        Toast.makeText(getActivity(), "No Bluetooth", Toast.LENGTH_SHORT).show();
+                    }
+
+                    try {
+                        Thread.sleep(500);                 //Wait 1/2 second
+                    } catch(InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+
+                    //Send alarm 3 only if checked
+                    try {
+                        characteristic.setValue(alarm3);
+                        mBluetoothLeService.writeCharacteristic(characteristic);
+                    } catch (Exception e) {
+                        Toast.makeText(getActivity(), "No Bluetooth", Toast.LENGTH_SHORT).show();
+                    }
+
+                    try {
+                        Thread.sleep(500);                 //Wait 1/2 second
+                    } catch(InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+
+                    //Send alarm 4 only if checked
+                    try {
+                        characteristic.setValue(alarm4);
+                        mBluetoothLeService.writeCharacteristic(characteristic);
+                    } catch (Exception e) {
+                        Toast.makeText(getActivity(), "No Bluetooth", Toast.LENGTH_SHORT).show();
+                    }
+
+                    try {
+                        Thread.sleep(500);                 //Wait 1/2 second
+                    } catch(InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+
+                    //Send alarm 5 only if checked
+                    try {
+                        characteristic.setValue(alarm5);
+                        mBluetoothLeService.writeCharacteristic(characteristic);
+                    } catch (Exception e) {
+                        Toast.makeText(getActivity(), "No Bluetooth", Toast.LENGTH_SHORT).show();
+                    }
+*/
+                    try {
+                        Thread.sleep(500);                 //Wait 1/2 second
+                    } catch(InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+
+
+                    //Button Customization Strings
+                    start = symptoms.getSelectedItem().toString();
+                    stop = symptoms.getSelectedItem().toString();
+                    yellow = yellowDrop.getSelectedItem().toString();
+                    blue = blueDrop.getSelectedItem().toString();
+                    String name = deviceName.getText().toString();
+                    String id = projectID.getText().toString();
+
+                    //Save all Settings
+                    savePrefs(start, stop, yellow, blue, np.getValue(), med1.getCurrentHour(),
+                            med1.getCurrentMinute(), med2.getCurrentHour(), med2.getCurrentMinute(),
+                            switch1.isChecked(), switch2.isChecked(), name, id, med3.getCurrentHour(), med3.getCurrentMinute(),
+                            med4.getCurrentHour(), med4.getCurrentMinute(), med5.getCurrentHour(), med5.getCurrentMinute(),
+                            switch3.isChecked(), switch4.isChecked(), switch5.isChecked());
+
+                }
+
+            });
+
+            return rootView;
+        }
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            ((Hub) activity).onSectionAttached(
+                    getArguments().getInt(ARG_SECTION_NUMBER));
+        }
     }
 
 }
