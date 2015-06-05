@@ -37,6 +37,7 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,7 +92,14 @@ public class Hub extends ActionBarActivity
     private static final long SCAN_PERIOD = 3000;
     private Dialog mDialog;
     public static List<BluetoothDevice> mDevices = new ArrayList<BluetoothDevice>();
+
     public static Hub instance = null;
+
+    private ImageView connectedIcon;
+    private TextView connectedText;
+
+
+    private boolean isConnected = false;
 
     private String redString;
     private String greenString;
@@ -118,6 +126,9 @@ public class Hub extends ActionBarActivity
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             mBluetoothLeService = null;
+            isConnected = false;
+            connectedText.setText("Not Connected");
+            connectedIcon.setImageResource(android.R.drawable.button_onoff_indicator_off);
         }
     };
 
@@ -127,7 +138,6 @@ public class Hub extends ActionBarActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-
 
             if (RBLService.ACTION_GATT_DISCONNECTED.equals(action)) {
             } else if (RBLService.ACTION_GATT_SERVICES_DISCOVERED
@@ -154,10 +164,6 @@ public class Hub extends ActionBarActivity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
 
-
-        tv = (TextView) findViewById(R.id.textView);
-        tv.setMovementMethod(new ScrollingMovementMethod());
-
         if (!getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, "Ble not supported", Toast.LENGTH_SHORT)
@@ -180,37 +186,24 @@ public class Hub extends ActionBarActivity
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
 
-        /*Button btn = (Button)findViewById(R.id.btn);
-        btn.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                scanLeDevice();
-
-                showRoundProcessDialog(Hub.this, R.layout.loading_process_dialog_anim);
-
-                Timer mTimer = new Timer();
-                mTimer.schedule(new TimerTask() {
-
-                    @Override
-                    public void run() {
-                        Intent deviceListIntent = new Intent(getApplicationContext(),
-                                Device.class);
-                        startActivity(deviceListIntent);
-                        mDialog.dismiss();
-                    }
-                }, SCAN_PERIOD);
-
-
-            }
-        });*/
-
         instance = this;
+
+        tv = (TextView) findViewById(R.id.textView);
+        tv.setMovementMethod(new ScrollingMovementMethod());
+
+        connectedText = (TextView) findViewById(R.id.connectedText);
+        connectedIcon = (ImageView) findViewById(R.id.connectedIcon);
 
         Intent intent = getIntent();
 
         mDeviceAddress = intent.getStringExtra(Device.EXTRA_DEVICE_ADDRESS);
         mDeviceName = intent.getStringExtra(Device.EXTRA_DEVICE_NAME);
+
+        if(mDeviceAddress!=null)
+        {
+            connectedText.setText("Connected");
+            connectedIcon.setImageResource(android.R.drawable.button_onoff_indicator_on);
+        }
 
         Intent gattServiceIntent = new Intent(this, RBLService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
@@ -296,6 +289,7 @@ public class Hub extends ActionBarActivity
                             Device.class);
                     startActivity(deviceListIntent);
                     mDialog.dismiss();
+                    isConnected=true;
                 }
             }, SCAN_PERIOD);
             return true;
