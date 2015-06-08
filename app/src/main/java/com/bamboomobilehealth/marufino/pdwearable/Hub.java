@@ -240,6 +240,11 @@ public class Hub extends ActionBarActivity
                         .replace(R.id.container, AlarmFragment.newInstance(position))
                         .commit();
                 break;
+            case 3:
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container, ProfileFragment.newInstance(position))
+                        .commit();
+                break;
 
         }
     }
@@ -748,10 +753,10 @@ public class Hub extends ActionBarActivity
             View rootView = inflater.inflate(R.layout.fragment_buttons, container, false);
 
             //Initialize Symptom Spinner
-            final Spinner symptoms = (Spinner)rootView.findViewById(R.id.greenspinner);
+            /*final Spinner symptoms = (Spinner)rootView.findViewById(R.id.greenspinner);
             String[] symptomItems = new String[]{"Bradykinesia", "Freezing", "Tremor", "Balance-Walking"};
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_item, symptomItems);
-            symptoms.setAdapter(adapter);
+            symptoms.setAdapter(adapter);*/
 
             return rootView;
         }
@@ -1244,6 +1249,82 @@ public class Hub extends ActionBarActivity
         @Override
         public void onDestroy(){
 
+        }
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            ((Hub) activity).onSectionAttached(
+                    getArguments().getInt(ARG_SECTION_NUMBER));
+        }
+    }
+
+
+    /**
+     * A placeholder fragment containing a simple view.
+     */
+    public static class ProfileFragment extends Fragment {
+        /**
+         * The fragment argument representing the section number for this
+         * fragment.
+         */
+
+        public static final String MY_PREFS_NAME = "PDSettings";
+
+        private static final String ARG_SECTION_NUMBER = "section_number";
+        private TextView deviceName;
+        private TextView projectID;
+        /**
+         * Returns a new instance of this fragment for the given section
+         * number.
+         */
+        public static ProfileFragment newInstance(int sectionNumber) {
+            ProfileFragment fragment = new ProfileFragment();
+            Bundle args = new Bundle();
+            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            fragment.setArguments(args);
+
+            return fragment;
+        }
+
+        public ProfileFragment() {
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
+
+            //Read files from preference file
+            SharedPreferences prefs = this.getActivity().getSharedPreferences(MY_PREFS_NAME,
+                    MODE_PRIVATE);
+
+            // store to vars
+            String name = prefs.getString("deviceName", "Enter Device Name Here");
+            String id   = prefs.getString("projectID", "Enter Project ID Here");
+
+            //Initialize Edit Texts
+            deviceName = (EditText) rootView.findViewById(R.id.editText);
+            deviceName.setText(name);
+
+            projectID = (EditText) rootView.findViewById(R.id.editText2);
+            projectID.setText(id);
+
+            return rootView;
+        }
+
+        @Override
+        public void onDestroy(){
+            SharedPreferences prefs = this.getActivity().getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("deviceName", deviceName.getText().toString());
+            editor.putString("projectID", projectID.getText().toString());
+
+            editor.commit();
+
+            Toast.makeText(getActivity(), "Profile Saved", Toast.LENGTH_SHORT).show();
+
+            super.onDestroy();
         }
 
         @Override
