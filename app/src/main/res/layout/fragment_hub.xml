@@ -51,7 +51,7 @@
 
             <LinearLayout
                 android:orientation="vertical"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:weightSum="1">
 
@@ -69,7 +69,7 @@
                     android:layout_weight="0.05" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:text="Tremors Start"
@@ -78,12 +78,13 @@
                     android:layout_column="4"
                     android:padding="0dp"
                     android:layout_gravity="center_horizontal"
-                    android:textColor="#ffffffff" />
+                    android:textColor="#ffffffff"
+                    android:gravity="center_horizontal" />
             </LinearLayout>
 
             <LinearLayout
                 android:orientation="vertical"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:weightSum="1">
 
@@ -97,11 +98,11 @@
                     android:layout_rowSpan="5"
                     android:src="@drawable/buttonr"
                     android:nestedScrollingEnabled="false"
-                    android:padding="10dp"
-                    android:layout_weight="0.05" />
+                    android:layout_weight="0.05"
+                    android:padding="10dp" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:text="Tremors Stop"
@@ -109,7 +110,8 @@
                     android:layout_row="5"
                     android:layout_column="4"
                     android:layout_gravity="center_horizontal"
-                    android:textColor="#ffffffff" />
+                    android:textColor="#ffffffff"
+                    android:gravity="center_horizontal" />
 
             </LinearLayout>
 
@@ -124,8 +126,8 @@
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:weightSum="1" >
+                android:layout_height="wrap_content"
+                android:weightSum="1">
 
                 <ImageView
                     android:layout_width="100dp"
@@ -141,7 +143,7 @@
                     android:layout_weight="0.05" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:text="Medication"
@@ -149,15 +151,16 @@
                     android:layout_row="5"
                     android:layout_column="4"
                     android:padding="0dp"
+                    android:textColor="#ffffffff"
                     android:layout_gravity="center_horizontal"
-                    android:textColor="#ffffffff" />
+                    android:gravity="center_horizontal" />
             </LinearLayout>
 
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:weightSum="1" >
+                android:layout_height="wrap_content"
+                android:weightSum="1">
 
                 <ImageView
                     android:layout_width="100dp"
@@ -173,7 +176,7 @@
                     android:layout_weight="0.05" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:text="Event"
@@ -182,7 +185,8 @@
                     android:layout_column="4"
                     android:padding="0dp"
                     android:layout_gravity="center_horizontal"
-                    android:textColor="#ffffffff" />
+                    android:textColor="#ffffffff"
+                    android:gravity="center_horizontal" />
             </LinearLayout>
         </LinearLayout>
 

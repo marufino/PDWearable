@@ -691,6 +691,20 @@ public class Hub extends ActionBarActivity
                 connectedIcon.setImageResource(android.R.drawable.button_onoff_indicator_on);
             }
 
+            // fill subtitle of buttons based on preferences
+            SharedPreferences prefs = this.getActivity().getSharedPreferences("button_settings",
+                    MODE_PRIVATE);
+
+            TextView greenLabel = (TextView) rootView.findViewById(R.id.textView2);
+            TextView redLabel = (TextView) rootView.findViewById(R.id.textView3);
+            TextView yellowLabel = (TextView) rootView.findViewById(R.id.textView4);
+            TextView blueLabel = (TextView) rootView.findViewById(R.id.textView5);
+
+            greenLabel.setText(prefs.getString("redpref", "Symptom Stop") + " Start");
+            redLabel.setText(prefs.getString("greenpref", "Symptom Start") + " Stop");
+            yellowLabel.setText(prefs.getString("bluepref", "Medication"));
+            blueLabel.setText(prefs.getString("yellowpref", "Event"));
+
             return rootView;
         }
 
@@ -1225,6 +1239,11 @@ public class Hub extends ActionBarActivity
             });
 
             return rootView;
+        }
+
+        @Override
+        public void onDestroy(){
+
         }
 
         @Override
